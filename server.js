@@ -15,7 +15,7 @@ server.listen(PORT, () => {
 });
 
 let Location = function (obj) {
-  let split = obj.[0].display_name.split(' ');
+  let split = obj[0].display_name.split(' ');
 
   this.search_query = split[0];
   this.formatted_query = obj[0].display_name;
@@ -50,8 +50,8 @@ server.get('/weather', (request, response) => {
 
 server.get('*',(req,res)=>{
   let errObj = {
-      status: 503,
-      resText: 'sorry! this page not found'
-  }
-  res.status(503).send(errObj);
-})
+    status: 500,
+    resText: 'sorry! this page not found'
+  };
+  res.status(500).send(errObj);
+});
