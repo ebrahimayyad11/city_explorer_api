@@ -1,93 +1,75 @@
 'use strict';
+
 require('dotenv').config();
-const { request, response } = require('express');
+const cors = require("cors");
 const express = require('express');
 const server = express();
-// const cors = cors();
+const superagent = require('superagent');
+server.use(cors());
+
 const PORT = process.env.PORT || 5000;
+
 server.get('/', (request, response) => {
+
+
+
   response.status(200).json();
   response.send('try another rout');
+
 });
 
-// server.use(cors());
-
-server.listen(PORT, () => {
-  console.log(PORT);
-});
-
-let Location = function (obj) {
-  let split = obj[0].display_name.split(' ');
-
-  this.search_query = split[0];
-  this.formatted_query = obj[0].display_name;
-  this.latitude = obj[0].lat;
-  this.longitude = obj[0].lon;
-};
+server.use(cors());
 
 
-server.get('/location', (request, response) => {
-  let location = require('./data/location.json');
-  let newLocation = new Location(location);
-  response.status(200).send(newLocation);
-});
-
-function getDay (str){
-  let newStr = str.substr(0,2);
-  switch(newStr){
-  case '13' : return 'Mon';
-
-  case '14' : return 'Tue';
-
-  case '15' : return 'Wed';
-
-  case '16' : return 'Thu';
-
-  case '17' : return 'Fri';
-
-  default : return 'Error';
-  }
-}
-
-function reverseDate (str){
-  let newStr;
-  newStr += str[8];
-  newStr += str[9];
-  newStr += str[7];
-  newStr += str[5];
-  newStr += str[6];
-  newStr += str[4];
-  newStr += str[0];
-  newStr += str[1];
-  newStr += str[2];
-  newStr += str[3];
-
-  return newStr;
-}
-
-let Weather = function (obj) {
+let Weather = function (obj){
   this.forecast = obj.weather.description;
-  let date = obj.valid_date;
-  let newDate = reverseDate(date);
-  let day = getDay(newDate);
-  this.time = day+newDate;
+  this.time = obj.valid_date;
 };
 
-server.get('/weather', (request, response) => {
-  let arr = [];
-  let weather = require('./data/weather.json');
-  weather.data.forEach((item) => {
-    let newWeather = new Weather(item);
-    arr.push(newWeather);
-  });
-  response.status(200).send(arr);
+
+server.get('/weather', (req, res) => {
+  let key = process.env.GEOCODE_API_KEY;
+  let countryName = req.query.city;
+  let locationURL = `https://api.weatherbit.io/v2.0/history/daily?country=${countryName}&&key=${key}`;
+  superagent.get(locationURL)
+    .then(item => {
+      let getData = item.body;
+      let result = getData.map(items => {
+        return new Weather(items);
+      });
+      res.send(result);
+    });
 });
 
 
-server.get('*',(req,res)=>{
-  let errObj = {
-    status: 500,
-    resText: 'sorry! this page not found'
-  };
-  res.status(500).send(errObj);
+
+let Location = function (obj,name) {
+  this.search_query = name;
+  this.formatted_query = obj.display_name;
+  this.latitude = obj.lat;
+  this.longitude = obj.lon;
+};
+
+
+server.get('/location', (req, res) => {
+  let key = process.env.GEOCODE_API_KEY;
+  let countryName = req.query.city;
+  let locationURL = `https://eu1.locationiq.com/v1/search.php?key=${key}&q=${countryName}&format=json`;
+  superagent.get(locationURL)
+    .then(item => {
+      let getData = item.body;
+      let result = getData.map(items => {
+        return new Location(items,countryName);
+      });
+      res.send(result);
+    });
+});
+
+
+server.get('/*' ,(req,res) => {
+  res.send('error 404');
+});
+
+server.listen(PORT,() => {
+  console.log(`listening to port ${PORT}`);
 });
