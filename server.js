@@ -1,7 +1,7 @@
 'use strict';
 
 require('dotenv').config();
-const cors = require("cors");
+const cors = require('cors');
 const express = require('express');
 const server = express();
 const superagent = require('superagent');
@@ -49,9 +49,9 @@ server.get('/weather', (req, res) => {
 
 let Location = function (obj,name) {
   this.search_query = name;
-  this.formatted_query = obj.display_name;
-  this.latitude = obj.lat;
-  this.longitude = obj.lon;
+  this.formatted_query = obj[0].display_name;
+  this.latitude = obj[0].lat;
+  this.longitude = obj[0].lon;
 };
 
 
@@ -62,9 +62,7 @@ server.get('/location', (req, res) => {
   superagent.get(locationURL)
     .then(item => {
       let getData = item.body;
-      let result = getData.map(items => {
-        return new Location(items,countryName);
-      });
+      let result = new Location(getData,countryName);
       res.send(result);
     });
 });
@@ -100,14 +98,14 @@ let Park = function(obj){
 
 server.get('/parks', (req,res) => {
   let key = process.env.PARKS_API_KEY;
-  let countryName = req.query.city;
+  let countryName = req.query.search_query;
   let parkURL = `https://developer.nps.gov/api/v1/parks?q=${countryName}&api_key=${key}`;
   superagent.get(parkURL)
     .then(item => {
       let getData = item.body.data;
       let result = [];
-      getData.forEach(items => {
-        result.push(new Park(items));
+      result = getData.map(items => {
+        return new Park(items);
       });
       res.send(result);
     });
