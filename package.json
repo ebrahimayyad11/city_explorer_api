@@ -8,6 +8,7 @@
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "pg": "^7.18.2",
+    "postgres": "^1.0.2",
     "superagent": "^5.3.1"
   },
   "devDependencies": {},
@@ -28,5 +29,3 @@
 
   "homepage": "https://github.com/roaaabualeeqa/301d18-class08#readme"
 }
-
-
