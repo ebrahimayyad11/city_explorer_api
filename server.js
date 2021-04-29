@@ -1,24 +1,72 @@
 'use strict';
+const express=require('express');
+require ('dotenv').config();
+const cors =require('cors');
+const superagent=require('superagent');
+// const dateFormat =require('dateformat');
+const postgres=require('pg');
 
-require('dotenv').config();
-const cors = require("cors");
-const express = require('express');
-const server = express();
-const superagent = require('superagent');
+
+const server=express();
+const PORT = process.env.PORT || 3500;
 server.use(cors());
+// const client=new postgres.Client({connectionString:process.env.DATABASE_URL, SSL:{rejectUnauthorized: false}});
+let client;
+let DATABASE_URL = process.env.DATABASE_URL;
+let ENV =  process.env.ENV||'';
+if (ENV === 'DEV') {
+  client = new postgres.Client({
+    connectionString: DATABASE_URL
+  });
+} else {
+  client = new postgres.Client({
+    connectionString: DATABASE_URL,
+    ssl: {}
+  });
+}
 
-const PORT = process.env.PORT || 5000;
-
-server.get('/', (request, response) => {
 
 
 
-  response.status(200).json();
-  response.send('try another rout');
+let Location = function (obj,name) {
+  this.search_query = name;
+  this.formatted_query = obj.display_name;
+  this.latitude = obj.lat;
+  this.longitude = obj.lon;
+};
 
+
+server.get('/location', (req, res) => {
+  let key = process.env.GEOCODE_API_KEY;
+  let countryName = req.query.city;
+  let locationData = [countryName];
+  let locationQuery = `SELECT * from locations where search_query=$1;`;
+  let locationURL = `https://eu1.locationiq.com/v1/search.php?key=${key}&q=${countryName}&format=json`;
+  client.query(locationQuery,locationData)
+    .then(result=>{
+      // console.log(result.rowCount);
+      if(result.rowCount !== 0){
+        res.send(result.rows[0]);
+      }else{
+        // console.log('catch');
+        superagent.get(locationURL)
+          .then(item=>{
+            let getData=item.body[0];
+            let newLocation = new Location(getData,countryName);
+            console.log(newLocation);
+            let queryData = [newLocation.search_query,newLocation.formatted_query,newLocation.latitude,newLocation.longitude];
+            let newQuery =`INSERT into locations (search_query,formatted_query,latitude,longitude) values ($1,$2,$3,$4);`;
+            client.query(newQuery,queryData)
+              .then(() => {
+                res.send(newLocation);
+              });
+            // console.log('API',newLocation);
+          });
+      }
+    });
 });
 
-server.use(cors());
+
 
 
 let Weather = function (description,date){
@@ -47,27 +95,7 @@ server.get('/weather', (req, res) => {
 
 
 
-let Location = function (obj,name) {
-  this.search_query = name;
-  this.formatted_query = obj.display_name;
-  this.latitude = obj.lat;
-  this.longitude = obj.lon;
-};
 
-
-server.get('/location', (req, res) => {
-  let key = process.env.GEOCODE_API_KEY;
-  let countryName = req.query.city;
-  let locationURL = `https://eu1.locationiq.com/v1/search.php?key=${key}&q=${countryName}&format=json`;
-  superagent.get(locationURL)
-    .then(item => {
-      let getData = item.body;
-      let result = getData.map(items => {
-        return new Location(items,countryName);
-      });
-      res.send(result);
-    });
-});
 
 function sumArr(arr){
   let sum = 0;
@@ -118,84 +146,10 @@ server.get('/*' ,(req,res) => {
   res.send('error 404');
 });
 
-server.listen(PORT,() => {
-  console.log(`listening to port ${PORT}`);
-});
-
-
-
-
-
-
-
-
-//Application dependencies
-const express = require('express');
-// Load Environment Variables from the .env file
-require('dotenv').config();
-const cors = require('cors');
-const pg = require('pg');
-
-
-//Application setupppp
-const app = express();
-app.use(cors());
-const PORT = process.env.PORT || 8000;
-
-const client = new pg.Client({ connectionString: process.env.DATABASE_URL,   ssl: { rejectUnauthorized: false } });
-
-
-// ROUTES
-app.get('/test', testHandler);
-app.get('/add', addDataHandler);
-app.get('/people',getDataHandler);
-app.get('*', notFoundHandler); //Error Handler
-
-// Routes Handlers
-function testHandler(request, response) {
-  response.status(200).send('ok');
-}
-
-function notFoundHandler(request, response) {
-  response.status(404).send('not found !!');
-}
-
-//localhost:3010/add?first_name=roaa&last_name=AbuAleeqa
-function addDataHandler(req,res){
-  console.log(req.query);
-  let firstName = req.query.first_name;
-  let lastName = req.query.last_name;
-  //safe values
-  let SQL = `INSERT INTO people (first_name,last_name) VALUES ($1,$2) RETURNING *;`;
-  let safeValues = [firstName,lastName];
-  client.query(SQL,safeValues)
-    .then(result=>{
-      res.send(result.rows);
-    })
-    .catch(error=>{
-      res.send(error);
-    });
-}
-
-//localhost:3010/people
-function getDataHandler(req,res){
-  let countryName = req.query.search_query;
-
-  let SQL = `SELECT * FROM locations where search_query = ${countryName};`;
- 
-  client.query(SQL)
-    .then(result=>{
-      res.send(result.rows);
-    })
-    .catch(error=>{
-      res.send(error);
-    });
-}
 
 client.connect()
-  .then(() => {
-    app.listen(PORT, () =>
-      console.log(`listening on ${PORT}`)
-    );
-
+  .then(()=>{
+    server.listen(PORT,()=>{
+      // console.log(`listening to port ${PORT}`);
+    });
   });
