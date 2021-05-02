@@ -1,52 +1,38 @@
 # city_explorer_api
 
 **Author**: Ebrahim Ayyad
-**Version**: 1.0.1 (increment the patch/fix version number if you make more commits past your first submission)
+**Version**: 1.0.0 (increment the patch/fix version number if you make more commits past your first submission)
 
+Number and name of feature: movies 01
 
+Estimate of time needed to complete: 2 hours
 
-Number and name of feature: Repository set up
+Start time: 8:00PM
 
-Estimate of time needed to complete: 30 minutes
-
-Start time: 8:00pm
-
-Finish time: 8:30pm
-
-Actual time needed to complete: 30 minutes
-
-
-
-Number and name of feature: Locations
-
-Estimate of time needed to complete: 1 hour
-
-Start time: 8:30pm
-
-Finish time: 9:30pm
+Finish time: 9:00PM
 
 Actual time needed to complete: 1 hour
 
 
 
-Number and name of feature: Weather
+Number and name of feature: yelp 02
 
-Estimate of time needed to complete: 1:30 hours
+Estimate of time needed to complete: 2 hours
 
-Start time: 9:30pm
+Start time: 9:00PM
 
-Finish time: 11:00pm
+Finish time: 10:00PM
 
-Actual time needed to complete: 1:30 hours
+Actual time needed to complete: 1 hour 
 
 
 
-Number and name of feature: Errors
+Number and name of feature: pagination 03
 
-Estimate of time needed to complete: 30 minutes
+Estimate of time needed to complete: 1 hour
 
-Start time: 11:00pm
+Start time: 10:00PM
 
-Finish time: 11:30pm
+Finish time: 10:30PM
 
 Actual time needed to complete: 30 minutes
