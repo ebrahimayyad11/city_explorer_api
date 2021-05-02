@@ -3,91 +3,94 @@ const express=require('express');
 require ('dotenv').config();
 const cors =require('cors');
 const superagent=require('superagent');
-// const postgres=require('pg');
+const postgres=require('pg');
 
 
 const server=express();
 const PORT = process.env.PORT || 3500;
 server.use(cors());
-// let client;
-// let DATABASE_URL = process.env.DATABASE_URL;
-// let ENV =  process.env.ENV ||'';
-// if (ENV === 'DEV') {
-//   client = new postgres.Client({
-//     connectionString: DATABASE_URL
-//   });
-// } else {
-//   client = new postgres.Client({
-//     connectionString: DATABASE_URL,
-//     ssl: {}
-//   });
-// }
+let client;
+let DATABASE_URL = process.env.DATABASE_URL;
+let ENV =  process.env.ENV ||'';
+if (ENV === 'DEV') {
+  client = new postgres.Client({
+    connectionString: DATABASE_URL
+  });
+} else {
+  client = new postgres.Client({
+    connectionString: DATABASE_URL,
+    ssl: {}
+  });
+}
 
 
-// let Location = function (obj,name) {
-//     this.search_query = name;
-//     this.formatted_query = obj.display_name;
-//     this.latitude = obj.lat;
-//     this.longitude = obj.lon;
-//   };
+let Location = function (obj,name) {
+    this.search_query = name;
+    this.formatted_query = obj.display_name;
+    this.latitude = obj.lat;
+    this.longitude = obj.lon;
+  };
   
   
-//   server.get('/location', (req, res) => {
-//     let key = process.env.GEOCODE_API_KEY;
-//     let countryName = req.query.city;
-//     let locationData = [countryName];
-//     let locationQuery = `SELECT * from locations where search_query=$1;`;
-//     let locationURL = `https://eu1.locationiq.com/v1/search.php?key=${key}&q=${countryName}&format=json`;
-//     client.query(locationQuery,locationData)
-//       .then(result=>{
-//         // console.log(result.rowCount);
-//         if(result.rowCount !== 0){
-//           res.send(result.rows[0]);
-//         }else{
-//           // console.log('catch');
-//           superagent.get(locationURL)
-//             .then(item=>{
-//               let getData=item.body[0];
-//               let newLocation = new Location(getData,countryName);
-//               console.log(newLocation);
-//               let queryData = [newLocation.search_query,newLocation.formatted_query,newLocation.latitude,newLocation.longitude];
-//               let newQuery =`INSERT into locations (search_query,formatted_query,latitude,longitude) values ($1,$2,$3,$4);`;
-//               client.query(newQuery,queryData)
-//                 .then(() => {
-//                   res.send(newLocation);
-//                 });
-//               // console.log('API',newLocation);
-//             });
-//         }
-//       });
-//   });
+  server.get('/location', (req, res) => {
+    let key = process.env.GEOCODE_API_KEY;
+    let countryName = req.query.city;
+    let locationData = [countryName];
+    let locationQuery = `SELECT * from locations where search_query=$1;`;
+    let locationURL = `https://eu1.locationiq.com/v1/search.php?key=${key}&q=${countryName}&format=json`;
+    client.query(locationQuery,locationData)
+      .then(result=>{
+        // console.log(result.rowCount);
+        if(result.rowCount !== 0){
+          res.send(result.rows[0]);
+        }else{
+          // console.log('catch');
+          superagent.get(locationURL)
+            .then(item=>{
+              let getData=item.body[0];
+              let newLocation = new Location(getData,countryName);
+              console.log(newLocation);
+              let queryData = [newLocation.search_query,newLocation.formatted_query,newLocation.latitude,newLocation.longitude];
+              let newQuery =`INSERT into locations (search_query,formatted_query,latitude,longitude) values ($1,$2,$3,$4);`;
+              client.query(newQuery,queryData)
+                .then(() => {
+                  res.send(newLocation);
+                });
+              // console.log('API',newLocation);
+            })
+            .catch(err => {
+              res.send(err);
+            });
+        }
+      });
+  });
   
   
   
   
-//   let Weather = function (description,date){
-//     this.forecast = description;
-//     this.time = new Date(date).toDateString();
-//   };
+  let Weather = function (description,date){
+    this.forecast = description;
+    this.time = new Date(date).toDateString();
+  };
   
   
-//   server.get('/weather', (req, res) => {
-//     let key = process.env.WEATHER_API_KEY;
-//     let countryName = req.query.search_query;
-//     let weatherURL = `https://api.weatherbit.io/v2.0/forecast/daily?city=${countryName}&key=${key}`;
-//     superagent.get(weatherURL)
-//       .then(item => {
-//         let getData = item.body.data;
-//         let result = getData.map(items => {
-//           return new Weather(items.weather.description,items.datetime);
-//         });
-//         res.status(200).send(result);
-//       })
+  server.get('/weather', (req, res) => {
+    let key = process.env.WEATHER_API_KEY;
+    let countryName = req.query.search_query;
+    let weatherURL = `https://api.weatherbit.io/v2.0/forecast/daily?city=${countryName}&key=${key}`;
+    superagent.get(weatherURL)
+      .then(item => {
+        let getData = item.body.data;
+        let result = getData.map(items => {
+          return new Weather(items.weather.description,items.datetime);
+        });
+        res.status(200).send(result);
+      })
   
-//       .catch(error => {
-//         res.send(error);
-//       });
-//   });
+      .catch(error => {
+        res.send(error);
+      });
+  });
   
   
   
@@ -134,7 +137,11 @@ server.use(cors());
           result.push(new Park(items));
         });
         res.send(result);
+      })
+      .catch(err => {
+        res.send(err);
       });
+      
   });
   
 
@@ -160,6 +167,9 @@ server.use(cors());
           result.push(new Movie(items));
         });
         res.send(result);
+      })
+      .catch(err => {
+        res.send(err);
       });
   });
   
@@ -189,6 +199,9 @@ server.use(cors());
           result.push(new Yelp(items));
         });
         res.send(result);
+      })
+      .catch(err => {
+        res.send(err);
       });
   });
 
@@ -199,9 +212,9 @@ server.get('/*' ,(req,res) => {
   });
   
   
-  // client.connect()
-  //   .then(()=>{
+  client.connect()
+    .then(()=>{
       server.listen(PORT,()=>{
-        // console.log(`listening to port ${PORT}`);
+        console.log(`listening to port ${PORT}`);
       });
-    // });
+    });
