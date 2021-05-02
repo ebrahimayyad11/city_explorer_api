@@ -93,34 +93,34 @@ server.use(cors());
   
   
   
-//   function sumArr(arr){
-//     let sum = 0;
-//     arr.forEach(item => {
-//       sum += parseInt(item);
-//     });
-//     return sum;
-//   }
+  function sumArr(arr){
+    let sum = 0;
+    arr.forEach(item => {
+      sum += parseInt(item);
+    });
+    return sum;
+  }
   
   
   
-//   let Park = function(obj){
-//     this.name = obj.fullName;
+  let Park = function(obj){
+    this.name = obj.fullName;
   
-//     this.address = obj.addresses[0].line1+','+obj.addresses[0].city+','+obj.addresses[0].stateCode
-//     +' '+obj.addresses[0].postalCode;
+    this.address = obj.addresses[0].line1+','+obj.addresses[0].city+','+obj.addresses[0].stateCode
+    +' '+obj.addresses[0].postalCode;
   
-//     let arr = obj.entranceFees;
-//     let newArr = [];
-//     arr.forEach(item => {
-//       newArr.push(item.cost);
-//     });
-//     this.fees = sumArr(newArr).toString()+'.00';
+    let arr = obj.entranceFees;
+    let newArr = [];
+    arr.forEach(item => {
+      newArr.push(item.cost);
+    });
+    this.fees = sumArr(newArr).toString()+'.00';
   
-//     this.description = obj.description;
+    this.description = obj.description;
   
-//     this.url = obj.url;
+    this.url = obj.url;
   
-//   };
+  };
   
   server.get('/parks', (req,res) => {
     let key = process.env.PARKS_API_KEY;
