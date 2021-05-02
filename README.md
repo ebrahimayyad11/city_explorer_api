@@ -1,6 +1,6 @@
 # city_explorer_api
 
-**Author**: Your Name Goes Here
+**Author**: Ebrahim Ayyad
 **Version**: 1.0.0 (increment the patch/fix version number if you make more commits past your first submission)
 
 Number and name of feature: movies 01
